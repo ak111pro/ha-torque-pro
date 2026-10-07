@@ -46,7 +46,9 @@ class TorqueProConfigFlow(ConfigFlow, domain=DOMAIN):
             base = get_url(self.hass, prefer_external=True, allow_internal=True)
         except NoURLAvailableError:
             base = "https://<your-home-assistant>"
-        legacy = self.hass.data.get(DATA_LEGACY_ALIAS, False)
+        # Before the first setup the flag is not set yet: then the alias will be served
+        # unless the core torque platform is loaded.
+        legacy = self.hass.data.get(DATA_LEGACY_ALIAS, "torque" not in self.hass.config.components)
         return {
             "url": f"{base}{API_PATH}",
             "legacy_url": f"{base}{LEGACY_API_PATH}" if legacy else "—",

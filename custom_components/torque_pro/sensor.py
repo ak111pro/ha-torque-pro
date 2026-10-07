@@ -69,7 +69,12 @@ class TorquePidSensor(TorqueEntity, RestoreSensor):
         self._attr_name = info.name
         self._attr_native_unit_of_measurement = info.unit
         self._attr_device_class = SensorDeviceClass(info.device_class) if info.device_class else None
-        self._attr_state_class = SensorStateClass.MEASUREMENT if info.statistics else None
+        if not info.statistics:
+            self._attr_state_class = None
+        elif info.total:
+            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        else:
+            self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_suggested_display_precision = info.precision
         self._value: float | None = None
 

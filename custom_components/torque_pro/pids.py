@@ -14,7 +14,9 @@ class PidInfo:
     name: str
     unit: str | None = None
     device_class: str | None = None  # SensorDeviceClass value
-    statistics: bool = True  # state_class measurement
+    statistics: bool = True  # recorded for long-term statistics
+    # Counters that reset at trip start (fuel used) need total_increasing, not measurement.
+    total: bool = False
     precision: int | None = None
 
 
@@ -40,7 +42,7 @@ KNOWN_PIDS: dict[str, PidInfo] = {
     "ff1001": PidInfo("Speed (GPS)", "km/h", "speed", True, 0),
     "ff1005": PidInfo("GPS Longitude", "°", None, False, 6),
     "ff1006": PidInfo("GPS Latitude", "°", None, False, 6),
-    "ff1007": PidInfo("GPS Bearing", "°", None, False, 0),
+    "ff1007": PidInfo("GPS Heading", "°", None, False, 0),
     "ff1010": PidInfo("GPS Altitude", "m", "distance", True, 0),
     "ff1204": PidInfo("Trip Distance", "km", "distance", True, 2),
     "ff1208": PidInfo("Trip average Litres/100 KM", "L/100km", None, True, 1),
@@ -59,7 +61,7 @@ KNOWN_PIDS: dict[str, PidInfo] = {
     "ff126a": PidInfo("Distance to empty (Estimated)", "km", "distance", True, 0),
     "ff126b": PidInfo("Fuel Remaining (Calculated from vehicle profile)", "%", None, True, 0),
     "ff126e": PidInfo("Cost per mile/km (Trip)", None, None, True, 3),
-    "ff1271": PidInfo("Fuel used (trip)", "L", "volume", True, 2),
+    "ff1271": PidInfo("Fuel used (trip)", "L", "volume", True, 2, total=True),
     "ff1273": PidInfo("Engine kW (At the wheels)", "kW", "power", True, 1),
     "ff1296": PidInfo("Percentage of City driving", "%", None, True, 0),
     "ff1297": PidInfo("Percentage of Highway driving", "%", None, True, 0),
@@ -125,4 +127,6 @@ def describe(pid: str, full_name: str | None, unit: str | None) -> PidInfo:
         device_class=device_class,
         statistics=known.statistics if known else True,
         precision=known.precision if known else None,
+        # Home Assistant only accepts total/total_increasing for volume and energy sensors.
+        total=(known.total if known else False) or device_class in ("volume", "energy"),
     )
