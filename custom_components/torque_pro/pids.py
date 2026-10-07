@@ -15,9 +15,9 @@ class PidInfo:
     unit: str | None = None
     device_class: str | None = None  # SensorDeviceClass value
     statistics: bool = True  # recorded for long-term statistics
+    precision: int | None = None
     # Counters that reset at trip start (fuel used) need total_increasing, not measurement.
     total: bool = False
-    precision: int | None = None
 
 
 KNOWN_PIDS: dict[str, PidInfo] = {
