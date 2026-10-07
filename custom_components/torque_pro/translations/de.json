@@ -1,0 +1,70 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Torque Pro",
+        "description": "Trage in der Torque-Pro-App unter Einstellungen → Datenaufzeichnung & Upload → Webserver-URL ein:\n\n`{url}`\n\nEbenfalls nutzbar (alte Adresse, solange die Core-Integration torque nicht konfiguriert ist): `{legacy_url}`\n\nAktiviere „Send https: Bearer Token“ und trage einen langlebigen Home-Assistant-Zugriffstoken ein. Fahrzeuge und ihre Sensoren erscheinen automatisch mit dem ersten Upload.",
+        "data": {
+          "email": "E-Mail-Filter (optional)"
+        },
+        "data_description": {
+          "email": "Nur Uploads annehmen, deren „Benutzer-E-Mail-Adresse“ in der App passt. Leer lassen, um alle anzunehmen."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Torque Pro ist bereits eingerichtet. Alle Handys und Fahrzeuge nutzen denselben Eintrag."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optionen",
+        "data": {
+          "email": "E-Mail-Filter (optional)",
+          "driving_timeout": "Aktiv-Zeitlimit"
+        },
+        "data_description": {
+          "driving_timeout": "Der Sensor „Aktiv“ schaltet nach dieser Zeit ohne Upload aus."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "active": {
+        "name": "Aktiv"
+      }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Standort"
+      }
+    },
+    "event": {
+      "trip": {
+        "name": "Fahrt",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "trip_started": "Fahrt gestartet",
+              "trip_resumed": "Fahrt fortgesetzt",
+              "trip_notice": "Fahrthinweis"
+            }
+          }
+        }
+      }
+    },
+    "sensor": {
+      "last_upload": {
+        "name": "Letzter Upload"
+      },
+      "odometer": {
+        "name": "Kilometerstand"
+      },
+      "tank_capacity": {
+        "name": "Tankgröße"
+      }
+    }
+  }
+}

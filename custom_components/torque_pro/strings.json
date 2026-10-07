@@ -1,0 +1,70 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Torque Pro",
+        "description": "In the Torque Pro app go to Settings → Data Logging & Upload → Webserver URL and enter:\n\n`{url}`\n\nAlso usable (old address, while the core torque integration is not configured): `{legacy_url}`\n\nEnable \"Send https: Bearer Token\" and enter a Home Assistant long-lived access token. Vehicles and their sensors appear automatically with the first upload.",
+        "data": {
+          "email": "E-mail filter (optional)"
+        },
+        "data_description": {
+          "email": "Only accept uploads whose \"User Email Address\" in the app matches. Leave empty to accept all."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Torque Pro is already set up. All phones and vehicles use the same entry."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "email": "E-mail filter (optional)",
+          "driving_timeout": "Active timeout"
+        },
+        "data_description": {
+          "driving_timeout": "The \"Active\" sensor turns off after this long without an upload."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "active": {
+        "name": "Active"
+      }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Location"
+      }
+    },
+    "event": {
+      "trip": {
+        "name": "Trip",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "trip_started": "Trip started",
+              "trip_resumed": "Trip resumed",
+              "trip_notice": "Trip notice"
+            }
+          }
+        }
+      }
+    },
+    "sensor": {
+      "last_upload": {
+        "name": "Last upload"
+      },
+      "odometer": {
+        "name": "Odometer"
+      },
+      "tank_capacity": {
+        "name": "Tank capacity"
+      }
+    }
+  }
+}

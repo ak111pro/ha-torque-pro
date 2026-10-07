@@ -1,0 +1,15 @@
+{
+  "domain": "torque_pro",
+  "name": "Torque Pro",
+  "codeowners": ["@ak111pro"],
+  "config_flow": true,
+  "dependencies": ["http"],
+  "documentation": "https://github.com/ak111pro/ha-torque-pro",
+  "integration_type": "hub",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/ak111pro/ha-torque-pro/issues",
+  "loggers": ["custom_components.torque_pro"],
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}
