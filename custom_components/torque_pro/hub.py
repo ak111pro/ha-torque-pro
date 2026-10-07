@@ -77,7 +77,9 @@ class TorqueHub:
 
     @property
     def email_filter(self) -> str | None:
-        return (self.entry.options.get(CONF_EMAIL) or self.entry.data.get(CONF_EMAIL) or "").strip() or None
+        if CONF_EMAIL in self.entry.options:
+            return self.entry.options[CONF_EMAIL].strip() or None
+        return (self.entry.data.get(CONF_EMAIL) or "").strip() or None
 
     async def async_load(self) -> None:
         stored = await self._store.async_load() or {}

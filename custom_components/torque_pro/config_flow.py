@@ -81,7 +81,10 @@ class TorqueProOptionsFlow(OptionsFlowWithReload):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
-            return self.async_create_entry(data=user_input)
+            # Always store the e-mail key so clearing the field really removes the filter.
+            return self.async_create_entry(
+                data={**user_input, CONF_EMAIL: (user_input.get(CONF_EMAIL) or "").strip()}
+            )
         current_email = self.config_entry.options.get(
             CONF_EMAIL, self.config_entry.data.get(CONF_EMAIL, "")
         )
