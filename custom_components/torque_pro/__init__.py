@@ -103,4 +103,5 @@ async def async_setup_entry(hass: HomeAssistant, entry: TorqueConfigEntry) -> bo
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: TorqueConfigEntry) -> bool:
+    await entry.runtime_data.async_flush()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

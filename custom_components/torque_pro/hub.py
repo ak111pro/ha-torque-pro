@@ -94,16 +94,20 @@ class TorqueHub:
         self._sessions = stored.get("sessions", {})
         self._last_vehicle_of_phone = stored.get("last_vehicle_of_phone", {})
 
+    def _data(self) -> dict[str, Any]:
+        return {
+            "vehicles": {vid: v.as_store() for vid, v in self.vehicles.items()},
+            "sessions": self._sessions,
+            "last_vehicle_of_phone": self._last_vehicle_of_phone,
+        }
+
     @callback
     def _schedule_save(self) -> None:
-        def data() -> dict[str, Any]:
-            return {
-                "vehicles": {vid: v.as_store() for vid, v in self.vehicles.items()},
-                "sessions": self._sessions,
-                "last_vehicle_of_phone": self._last_vehicle_of_phone,
-            }
+        self._store.async_delay_save(self._data, SAVE_DELAY)
 
-        self._store.async_delay_save(data, SAVE_DELAY)
+    async def async_flush(self) -> None:
+        """Write pending changes now (on unload/reload, so a reload never loads stale data)."""
+        await self._store.async_save(self._data())
 
     # ------------------------------------------------------------------ routing
 
