@@ -192,8 +192,8 @@ Thank you to everyone whose work made this possible:
 - **[econpy/torque](https://github.com/econpy/torque)**
 - the **community payload documentation** of the Torque upload protocol, which was used to
   understand the protocol
-- the engine icon shape comes from [Material Design Icons](https://pictogrammers.com/library/mdi/)
-  (`mdi:engine`, Apache-2.0)
+- the icon symbol comes from [Material Design Icons](https://pictogrammers.com/library/mdi/)
+  (`mdi:car-connected`, Apache-2.0)
 
 No code was copied from any of these projects.
 
