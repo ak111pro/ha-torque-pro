@@ -54,7 +54,7 @@ KNOWN_PIDS: dict[str, PidInfo] = {
     "ff123b": PidInfo("GPS Bearing", "°", None, False, 0),
     "ff1249": PidInfo("Air Fuel Ratio(Measured)", ":1", None, True, 2),
     "ff124d": PidInfo("Air Fuel Ratio(Commanded)", ":1", None, True, 2),
-    "ff125c": PidInfo("Fuel cost (trip)", None, None, True, 2),
+    "ff125c": PidInfo("Fuel cost (trip)", "cost", "monetary", True, 2),
     "ff125d": PidInfo("Fuel flow rate/hour", "L/h", None, True, 2),
     "ff1263": PidInfo("Average trip speed(whilst moving only)", "km/h", "speed", True, 0),
     "ff1269": PidInfo("Volumetric Efficiency (Calculated)", "%", None, True, 0),
@@ -104,6 +104,8 @@ UNITS: dict[str, tuple[str, str | None]] = {
     "Nm": ("Nm", None),
     "ft-lb": ("ft-lb", None),
     ":1": (":1", None),
+    # Torque sends no currency, only "cost"; the sensor uses Home Assistant's currency.
+    "cost": ("cost", "monetary"),
 }
 
 

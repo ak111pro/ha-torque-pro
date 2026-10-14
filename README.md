@@ -117,7 +117,12 @@ Everything belongs to one device per vehicle.
 | Tank capacity | sensor (diagnostic) | From the vehicle profile in the app, L |
 
 Some sensors get a device class from their unit (temperature, speed, pressure, voltage,
-distance, duration, power, battery). Counters that restart with every trip, such as
+distance, duration, power, battery). *Fuel cost (trip)* is a monetary sensor in Home Assistant's
+currency (Torque only sends "cost"), state class `total` with `last_reset` at the start of each
+trip.
+
+The device's model shows what the app's vehicle profile tells about the car: engine size, fuel
+type and weight, for example "3.0 l petrol, 2120 kg". The app does not send make, model or VIN. Counters that restart with every trip, such as
 *Fuel used (trip)*, are `total_increasing` volume sensors. GPS longitude and latitude are
 not recorded for long-term statistics.
 

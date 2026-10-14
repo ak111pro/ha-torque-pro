@@ -128,9 +128,16 @@ def test_gps_coordinates_not_in_statistics(pids):
 def test_device_classes_are_known_ha_values(pids):
     allowed = {
         "temperature", "pressure", "atmospheric_pressure", "speed", "voltage",
-        "distance", "duration", "volume", "power", "battery", None,
+        "distance", "duration", "volume", "power", "battery", "monetary", None,
     }
     for info in pids.KNOWN_PIDS.values():
         assert info.device_class in allowed
     for _unit, device_class in pids.UNITS.values():
         assert device_class in allowed
+
+
+def test_fuel_cost_is_money(pids):
+    # Torque sends the unit "cost" (no currency); the sensor puts in Home Assistant's currency.
+    assert pids.describe("ff125c", "Fuel cost (trip)", "cost").device_class == "monetary"
+    assert pids.describe("ff125c", None, None).device_class == "monetary"
+    assert pids.describe("ff125c", None, None).total is False

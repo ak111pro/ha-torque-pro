@@ -14,16 +14,37 @@ from .const import DOMAIN, SIGNAL_NEW_VEHICLE, SIGNAL_UPDATE
 from .hub import TorqueHub, Vehicle
 
 
+# Fuel type numbers of the app's vehicle profile. Only "0" is confirmed (a petrol car sends it);
+# other numbers are left out rather than guessed.
+FUEL_TYPES = {"0": "petrol"}
+
+
+def _number(text: str | None) -> float | None:
+    try:
+        return float(text) if text else None
+    except ValueError:
+        return None
+
+
+def vehicle_model(profile: dict[str, str]) -> str:
+    """What the app's vehicle profile tells about the car, e.g. "3.0 l petrol, 2120 kg"."""
+    engine = []
+    if (litres := _number(profile.get("Displacement"))) is not None and litres > 0:
+        engine.append(f"{litres:.1f} l")
+    if (fuel := FUEL_TYPES.get(profile.get("FuelType", ""))) is not None:
+        engine.append(fuel)
+    details = [" ".join(engine)] if engine else []
+    if (weight := _number(profile.get("Weight"))) is not None and weight > 0:
+        details.append(f"{weight:g} kg")
+    return ", ".join(details) or "Vehicle profile"
+
+
 def vehicle_device_info(vehicle: Vehicle) -> DeviceInfo:
-    profile = vehicle.profile
-    details = []
-    if profile.get("Displacement"):
-        details.append(f"{profile['Displacement']} l")
     return DeviceInfo(
         identifiers={(DOMAIN, vehicle.vehicle_id)},
         name=vehicle.name,
         manufacturer="Torque Pro",
-        model="Vehicle profile" + (f" ({', '.join(details)})" if details else ""),
+        model=vehicle_model(vehicle.profile),
     )
 
 

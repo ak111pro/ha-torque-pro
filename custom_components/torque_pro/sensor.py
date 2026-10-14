@@ -13,6 +13,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import EntityCategory, UnitOfLength, UnitOfVolume
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -69,8 +70,17 @@ class TorquePidSensor(TorqueEntity, RestoreSensor):
         self._attr_name = info.name
         self._attr_native_unit_of_measurement = info.unit
         self._attr_device_class = SensorDeviceClass(info.device_class) if info.device_class else None
+        # Money (e.g. "Fuel cost (trip)"): Torque only says "cost", so use Home Assistant's
+        # currency. Monetary sensors only allow state class total; the value restarts at every
+        # trip, so last_reset moves to the moment it drops.
+        self._monetary = info.device_class == SensorDeviceClass.MONETARY
+        self._attr_last_reset = None
+        if self._monetary:
+            self._attr_native_unit_of_measurement = hub.hass.config.currency
         if not info.statistics:
             self._attr_state_class = None
+        elif self._monetary:
+            self._attr_state_class = SensorStateClass.TOTAL
         elif info.total:
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
         else:
@@ -80,6 +90,10 @@ class TorquePidSensor(TorqueEntity, RestoreSensor):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
+        if self._monetary:
+            last_state = await self.async_get_last_state()
+            restored = last_state.attributes.get("last_reset") if last_state else None
+            self._attr_last_reset = dt_util.parse_datetime(restored) if isinstance(restored, str) else None
         if self.pid in self.vehicle.values:
             self._value = self.vehicle.values[self.pid]
         elif (last := await self.async_get_last_sensor_data()) is not None:
@@ -96,6 +110,10 @@ class TorquePidSensor(TorqueEntity, RestoreSensor):
         if self.pid in self.vehicle.values:
             value = self.vehicle.values[self.pid]
             if value != self._value:
+                if self._monetary and (
+                    self._attr_last_reset is None or (self._value is not None and value < self._value)
+                ):
+                    self._attr_last_reset = dt_util.utcnow()  # a new trip started
                 self._value = value
                 self.async_write_ha_state()
 
