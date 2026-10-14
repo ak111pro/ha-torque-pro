@@ -4,14 +4,11 @@
 [![Tests](https://github.com/ak111pro/ha-torque-pro/actions/workflows/tests.yml/badge.svg)](https://github.com/ak111pro/ha-torque-pro/actions/workflows/tests.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-> [!WARNING]
-> **Experimental and AI-generated. Not yet in daily use.**
->
-> This integration was written by an AI assistant (Claude, by Anthropic) for its owner
-> [@ak111pro](https://github.com/ak111pro). It has been tested only in a throwaway Home
-> Assistant instance with replayed real uploads from the Torque Pro app. It is **not yet in
-> daily use**, so expect bugs, do not rely on it for anything important, and please report
-> problems as issues. This notice will be updated once it has proven itself.
+> [!NOTE]
+> **AI-generated.** This integration was written by an AI assistant (Claude, by Anthropic) for
+> its owner [@ak111pro](https://github.com/ak111pro). It is in daily use on a real Home
+> Assistant installation since 2026-10-14, replacing the core `torque` integration. Please
+> report problems as issues.
 
 A Home Assistant integration that receives the live data the **Torque Pro** OBD-II app
 (Android) uploads to a web server: engine, speed, fuel and battery values, GPS position
@@ -204,7 +201,7 @@ No code was copied from any of these projects.
 
 ## Disclaimer
 
-This project is AI-generated and experimental (see the notice at the top). It is not
+This project is AI-generated (see the notice at the top). It is not
 affiliated with, endorsed by or connected to Torque Pro, Ian Hawkins or the Torque
 developers, nor to any vehicle manufacturer. Torque Pro and all vehicle brand names are
 trademarks of their respective owners. Use at your own risk.
