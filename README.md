@@ -35,7 +35,7 @@ sensors (and their last values) across restarts.
 - **Persistent sensors**: one per value the app sends, created automatically, restored with
   their last value after a restart
 - **GPS device tracker** with the phone's position and accuracy
-- **Active** binary sensor: on while uploads arrive, off after a configurable timeout
+- **Active** binary sensor: on while the car's OBD values change, off after a configurable timeout (Torque keeps sending the last values after the ignition is off, so arriving uploads alone don't count)
 - **Trip event** entity for the app's trip notices (started, resumed, other)
 - **Odometer** and **tank capacity** sensors taken from the vehicle profile
 - Optional **e-mail filter** (the "User Email Address" set in the app) to ignore foreign uploads
@@ -84,7 +84,7 @@ rejected before reaching the integration.
 | Option | Default | Allowed | Description |
 | --- | --- | --- | --- |
 | E-mail filter | empty | any address | Only accept uploads whose app e-mail address matches; empty accepts all |
-| Active timeout | 60 s | 15 to 3600 s | The Active sensor turns off after this long without an upload |
+| Active timeout | 60 s | 15 to 3600 s | The Active sensor turns off after this long without a changed OBD value |
 
 ## Migrating from the core `torque` integration
 
@@ -110,7 +110,7 @@ Everything belongs to one device per vehicle.
 | --- | --- | --- |
 | One sensor per reported value (for example *Engine RPM*, *Speed (GPS)*, *Voltage (Control Module)*) | sensor | Named and unit-converted as the app sends it; keeps the last value across restarts. Attributes `pid` and `short_name` |
 | Location | device tracker | GPS position and accuracy; ignores the 0/0 the app sends before it has a fix |
-| Active | binary sensor (running) | On while uploads arrive |
+| Active | binary sensor (running) | On while OBD values change (engine data, not GPS) |
 | Trip | event | Event types `trip_started`, `trip_resumed`, `trip_notice`; attribute `message` |
 | Last upload | sensor (diagnostic) | Time of the last upload |
 | Odometer | sensor (diagnostic) | From the vehicle profile in the app, km |

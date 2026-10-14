@@ -49,6 +49,9 @@ class Vehicle:
     sensors: dict[str, dict[str, str]] = field(default_factory=dict)
     values: dict[str, float] = field(default_factory=dict)
     last_upload: datetime | None = None
+    # Last upload in which an OBD value (not GPS/phone, "ff…") changed. Torque keeps sending the
+    # last OBD values after the ignition is off, so arriving uploads alone do not mean driving.
+    last_obd_change: datetime | None = None
     last_notice: tuple[str, str] | None = None  # (event type, message)
 
     def as_store(self) -> dict[str, Any]:
@@ -169,6 +172,11 @@ class TorqueHub:
         if upload.meta:
             self._merge_meta(vehicle, upload.meta)
 
+        if any(
+            not pid.startswith("ff") and vehicle.values.get(pid) != value
+            for pid, value in upload.values.items()
+        ):
+            vehicle.last_obd_change = dt_util.utcnow()
         vehicle.values.update(upload.values)
         # Create an entity once a PID has a value and a name (from the app or the built-in
         # table). Waiting for the name keeps entity ids stable when values come first.

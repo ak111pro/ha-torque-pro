@@ -25,7 +25,7 @@
           "driving_timeout": "Aktiv-Zeitlimit"
         },
         "data_description": {
-          "driving_timeout": "Der Sensor „Aktiv“ schaltet nach dieser Zeit ohne Upload aus."
+          "driving_timeout": "Der Sensor „Aktiv“ schaltet nach dieser Zeit ohne geänderten OBD-Wert aus."
         }
       }
     }

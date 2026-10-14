@@ -31,7 +31,11 @@ async def async_setup_entry(
 
 
 class TorqueActiveSensor(TorqueEntity, BinarySensorEntity):
-    """On while uploads arrive; off after the configured timeout without one."""
+    """On while OBD values change; off after the configured timeout without a change.
+
+    Uploads alone are not enough: after the ignition is off Torque keeps sending the last OBD
+    values (unchanged, e.g. the engine run time stays frozen) together with GPS data.
+    """
 
     _attr_device_class = BinarySensorDeviceClass.RUNNING
     _attr_translation_key = "active"
@@ -47,7 +51,7 @@ class TorqueActiveSensor(TorqueEntity, BinarySensorEntity):
 
     @property
     def is_on(self) -> bool:
-        last = self.vehicle.last_upload
+        last = self.vehicle.last_obd_change
         return last is not None and dt_util.utcnow() - last < self._timeout
 
     @callback
