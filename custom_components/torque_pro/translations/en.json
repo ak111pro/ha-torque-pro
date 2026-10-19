@@ -65,6 +65,11 @@
       "tank_capacity": {
         "name": "Tank capacity"
       }
+    },
+    "number": {
+      "odometer_correction": {
+        "name": "Odometer correction"
+      }
     }
   }
 }

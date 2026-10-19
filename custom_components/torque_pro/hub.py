@@ -53,6 +53,8 @@ class Vehicle:
     # last OBD values after the ignition is off, so arriving uploads alone do not mean driving.
     last_obd_change: datetime | None = None
     last_notice: tuple[str, str] | None = None  # (event type, message)
+    # Kilometres added to Torque's own odometer so it matches the car's dashboard (0 = none).
+    odometer_correction: float = 0.0
 
     def as_store(self) -> dict[str, Any]:
         return {
@@ -60,6 +62,7 @@ class Vehicle:
             "phone_id": self.phone_id,
             "profile": self.profile,
             "sensors": self.sensors,
+            "odometer_correction": self.odometer_correction,
         }
 
 
@@ -93,6 +96,7 @@ class TorqueHub:
                 phone_id=data["phone_id"],
                 profile=data.get("profile", {}),
                 sensors=data.get("sensors", {}),
+                odometer_correction=float(data.get("odometer_correction") or 0.0),
             )
         self._sessions = stored.get("sessions", {})
         self._last_vehicle_of_phone = stored.get("last_vehicle_of_phone", {})
@@ -107,6 +111,13 @@ class TorqueHub:
     @callback
     def _schedule_save(self) -> None:
         self._store.async_delay_save(self._data, SAVE_DELAY)
+
+    @callback
+    def async_set_odometer_correction(self, vehicle: Vehicle, kilometres: float) -> None:
+        """Store a new correction and let the odometer show it right away."""
+        vehicle.odometer_correction = kilometres
+        self._schedule_save()
+        async_dispatcher_send(self.hass, SIGNAL_UPDATE.format(vehicle.vehicle_id))
 
     async def async_flush(self) -> None:
         """Write pending changes now (on unload/reload, so a reload never loads stale data)."""

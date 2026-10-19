@@ -86,6 +86,7 @@ class TorquePidSensor(TorqueEntity, RestoreSensor):
         else:
             self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_suggested_display_precision = info.precision
+        self._attr_icon = info.icon
         self._value: float | None = None
 
     async def async_added_to_hass(self) -> None:
@@ -171,10 +172,28 @@ class TorqueProfileSensor(TorqueEntity, SensorEntity):
         self._attr_device_class = device_class
         self._attr_suggested_display_precision = 0
 
+        if key == "odometer":
+            # The odometer is a main value, not a diagnostic one, and a counter for statistics.
+            self._attr_entity_category = None
+            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+
     @property
     def native_value(self) -> float | None:
         raw = self.vehicle.profile.get(self._profile_key)
         try:
-            return float(raw) if raw not in (None, "") else None
+            value = float(raw) if raw not in (None, "") else None
         except ValueError:
             return None
+        if value is not None and self._profile_key == "Odometer":
+            # Torque counts only what it has logged; the correction brings it to the dashboard.
+            value += self.vehicle.odometer_correction
+        return value
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        if self._profile_key != "Odometer" or not self.vehicle.odometer_correction:
+            return None
+        return {
+            "torque_odometer": self.vehicle.profile.get(self._profile_key),
+            "correction": self.vehicle.odometer_correction,
+        }

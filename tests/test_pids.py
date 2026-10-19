@@ -141,3 +141,22 @@ def test_fuel_cost_is_money(pids):
     assert pids.describe("ff125c", "Fuel cost (trip)", "cost").device_class == "monetary"
     assert pids.describe("ff125c", None, None).device_class == "monetary"
     assert pids.describe("ff125c", None, None).total is False
+
+
+def test_values_without_device_class_get_an_icon(pids):
+    assert pids.describe("ff1006", "GPS Latitude", "°").icon == "mdi:latitude"
+    assert pids.describe("ff1005", None, None).icon == "mdi:longitude"
+    assert pids.describe("ff1297", "Percentage of Highway driving", "%").icon == "mdi:highway"
+
+
+def test_unknown_pid_has_no_icon(pids):
+    assert pids.describe("zz99", "TEST something", "x").icon is None
+
+
+def test_every_known_pid_without_device_class_has_an_icon(pids):
+    missing = [
+        pid
+        for pid, info in pids.KNOWN_PIDS.items()
+        if info.device_class is None and info.icon is None
+    ]
+    assert missing == []

@@ -25,7 +25,7 @@
           "driving_timeout": "Active timeout"
         },
         "data_description": {
-          "driving_timeout": "The \"Active\" sensor turns off after this long without an upload."
+          "driving_timeout": "The \"Active\" sensor turns off after this long without a changed OBD value."
         }
       }
     }
@@ -64,6 +64,11 @@
       },
       "tank_capacity": {
         "name": "Tank capacity"
+      }
+    },
+    "number": {
+      "odometer_correction": {
+        "name": "Odometer correction"
       }
     }
   }

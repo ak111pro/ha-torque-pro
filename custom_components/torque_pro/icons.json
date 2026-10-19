@@ -1,11 +1,35 @@
 {
   "entity": {
-    "binary_sensor": { "active": { "default": "mdi:car-connected", "state": { "off": "mdi:car-off" } } },
-    "device_tracker": { "location": { "default": "mdi:car" } },
-    "event": { "trip": { "default": "mdi:map-marker-path" } },
+    "binary_sensor": {
+      "active": {
+        "default": "mdi:car-connected",
+        "state": {
+          "off": "mdi:car-off"
+        }
+      }
+    },
+    "device_tracker": {
+      "location": {
+        "default": "mdi:car"
+      }
+    },
+    "event": {
+      "trip": {
+        "default": "mdi:map-marker-path"
+      }
+    },
     "sensor": {
-      "odometer": { "default": "mdi:counter" },
-      "tank_capacity": { "default": "mdi:gas-station" }
+      "odometer": {
+        "default": "mdi:counter"
+      },
+      "tank_capacity": {
+        "default": "mdi:gas-station"
+      }
+    },
+    "number": {
+      "odometer_correction": {
+        "default": "mdi:counter"
+      }
     }
   }
 }
