@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.2.0 – 2026-10-20
+
+### Added
+
+- *Odometer correction*: a number per vehicle with the kilometres between the app's own
+  odometer and the car's dashboard. The *Odometer* sensor adds it (0 leaves it unchanged) and
+  shows both parts as attributes. The correction is kept with the vehicle.
+- Icons for every known value without a device class, such as `mdi:latitude` and
+  `mdi:longitude` for the GPS position, `mdi:gauge` for RPM and `mdi:highway` for the share of
+  highway driving.
+
+### Changed
+
+- *Odometer* is no longer a diagnostic entity and has state class `total_increasing`, so it
+  has long-term statistics.
+
+### Notes
+
+- The *Trip* event entity only keeps a history if the `event` domain is recorded: a
+  `recorder:` configuration with an `include:` list must name `event`.
+
 ## 0.1.0 – 2026-10-14
 
 First release. In daily use on a Home Assistant 2026.9.4 installation since 2026-10-14,

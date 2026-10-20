@@ -34,7 +34,8 @@ sensors (and their last values) across restarts.
 - **GPS device tracker** with the phone's position and accuracy
 - **Active** binary sensor: on while the car's OBD values change, off after a configurable timeout (Torque keeps sending the last values after the ignition is off, so arriving uploads alone don't count)
 - **Trip event** entity for the app's trip notices (started, resumed, other)
-- **Odometer** and **tank capacity** sensors taken from the vehicle profile
+- **Odometer** and **tank capacity** sensors taken from the vehicle profile, with an
+  **odometer correction** to match the car's dashboard
 - Optional **e-mail filter** (the "User Email Address" set in the app) to ignore foreign uploads
 - **Legacy URL alias** `/api/torque` is served when the core `torque` platform is not
   configured, so an existing app setup keeps working unchanged
@@ -110,7 +111,8 @@ Everything belongs to one device per vehicle.
 | Active | binary sensor (running) | On while OBD values change (engine data, not GPS) |
 | Trip | event | Event types `trip_started`, `trip_resumed`, `trip_notice`; attribute `message` |
 | Last upload | sensor (diagnostic) | Time of the last upload |
-| Odometer | sensor (diagnostic) | From the vehicle profile in the app, km |
+| Odometer | sensor | From the vehicle profile in the app plus the odometer correction, km; attributes `torque_odometer` and `correction` when a correction is set |
+| Odometer correction | number (configuration) | Kilometres added to the app's odometer so it matches the dashboard (dashboard reading minus the app's value); 0 leaves it unchanged |
 | Tank capacity | sensor (diagnostic) | From the vehicle profile in the app, L |
 
 Some sensors get a device class from their unit (temperature, speed, pressure, voltage,
@@ -135,6 +137,12 @@ The app reports a notice at the start of a trip. The **Trip** event entity fires
 
 Each event carries the original text as `message`.
 
+The entity's state is the time of the last event, so trigger on the state and check the event
+type in a condition (a trigger on the `event_type` attribute misses a second `trip_started` in a
+row, because the attribute does not change). To see past events in the history and logbook,
+the `event` domain has to be recorded: a `recorder:` configuration with an `include:` list must
+name `event`.
+
 Example automation:
 
 ```yaml
@@ -143,8 +151,12 @@ automation:
     triggers:
       - trigger: state
         entity_id: event.my_car_trip
+        not_to: [unavailable, unknown]
+    conditions:
+      - condition: state
+        entity_id: event.my_car_trip
         attribute: event_type
-        to: trip_started
+        state: trip_started
     actions:
       - action: notify.notify
         data:
