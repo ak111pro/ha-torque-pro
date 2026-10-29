@@ -1,4 +1,8 @@
-"""Tests for TorqueHub (routing, merging, announcements) without Home Assistant."""
+"""Tests for TorqueHub (routing, merging, announcements) without Home Assistant.
+
+All phone ids, emails, vehicle names and sensor names below are synthetic examples,
+not data from a real home.
+"""
 
 import asyncio
 
