@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import importlib.util
 import sys
 import types
+from typing import ClassVar
 from unittest.mock import Mock
 
 BASE_TIME = datetime(2026, 1, 1)
@@ -63,7 +64,7 @@ class FakeStore:
         self.key = key
 
     # Pending async_delay_save calls, shared so flush_delayed() writes them all out.
-    delayed: list[tuple[FakeStore, object]] = []
+    delayed: ClassVar[list[tuple[FakeStore, object]]] = []
 
     async def async_load(self) -> dict | None:
         return _storage.get(self.key)
