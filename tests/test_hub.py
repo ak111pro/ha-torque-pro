@@ -328,3 +328,56 @@ def test_uploads_schedule_a_debounced_save(hub):
     hub2 = TorqueHub(ha_stubs.FakeHomeAssistant(), ha_stubs.FakeConfigEntry())
     asyncio.run(hub2.async_load())
     assert set(hub2.vehicles) == {TRUCK_VID}
+
+
+# --- 10. store round trip: what the Store keeps survives a restart ---------------
+
+
+def test_round_trip_keeps_name_phone_profile_sensors_correction_and_session(hub):
+    handle(
+        hub,
+        session="trip1",
+        profile={"Name": TRUCK, "FuelType": "Petrol"},
+        meta={"abc": {"full_name": "Custom sensor", "user_unit": "kPa"}},
+        values={"abc": 111.0},
+    )
+    hub.async_set_odometer_correction(hub.vehicles[TRUCK_VID], 12.5)
+
+    hub2 = restart(hub)
+    vehicle = hub2.vehicles[TRUCK_VID]
+    assert vehicle.name == TRUCK
+    assert vehicle.phone_id == PHONE1
+    assert vehicle.profile == {"Name": TRUCK, "FuelType": "Petrol"}
+    assert vehicle.sensors["abc"]["full_name"] == "Custom sensor"
+    assert vehicle.sensors["abc"]["created"] is True
+    assert vehicle.odometer_correction == 12.5
+
+    # the session survived too: a profile-less value upload is still routed through it
+    assert handle(hub2, session="trip1", values={"abc": 112.0})
+    assert hub2.vehicles[TRUCK_VID].values["abc"] == 112.0
+
+
+def test_runtime_values_and_trip_clocks_are_not_persisted(hub):
+    handle(hub, session="trip1", profile={"Name": TRUCK}, values={"5": 90.0})
+    assert hub.vehicles[TRUCK_VID].last_upload is not None
+    assert hub.vehicles[TRUCK_VID].last_obd_change is not None
+
+    hub2 = restart(hub)
+    vehicle = hub2.vehicles[TRUCK_VID]
+    # the vehicle and its created sensor entries survive…
+    assert vehicle.name == TRUCK
+    assert vehicle.sensors["5"]["created"] is True
+    # …but values and timestamps are runtime state: empty again until the next upload
+    assert vehicle.values == {}
+    assert vehicle.last_upload is None
+    assert vehicle.last_obd_change is None
+
+
+def test_session_without_a_profile_upload_is_never_stored(hub):
+    # meta and values arrive on a session whose profile request never shows up
+    handle(hub, session="orphan", meta={"abc": {"full_name": "Custom sensor"}})
+    assert handle(hub, session="orphan", values={"abc": 1.0}) is True  # dropped, not filtered
+
+    hub2 = restart(hub)
+    assert hub2.vehicles == {}
+    assert "orphan" not in hub2._sessions
