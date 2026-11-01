@@ -33,7 +33,7 @@ sensors (and their last values) across restarts.
   their last value after a restart
 - **GPS device tracker** with the phone's position and accuracy
 - **Active** binary sensor: on while the car's OBD values change, off after a configurable timeout (Torque keeps sending the last values after the ignition is off, so arriving uploads alone don't count)
-- **Trip event** entity for the app's trip notices (started, resumed, other)
+- **Trip event** entity for the app's trip notices (started, resumed, other) and a **trip end with a summary** (distance, duration, fuel, speed, odometer)
 - **Odometer** and **tank capacity** sensors taken from the vehicle profile, with an
   **odometer correction** to match the car's dashboard
 - Optional **e-mail filter** (the "User Email Address" set in the app) to ignore foreign uploads
@@ -109,7 +109,7 @@ Everything belongs to one device per vehicle.
 | One sensor per reported value (for example *Engine RPM*, *Speed (GPS)*, *Voltage (Control Module)*) | sensor | Named and unit-converted as the app sends it; keeps the last value across restarts. Attributes `pid` and `short_name` |
 | Location | device tracker | GPS position and accuracy; ignores the 0/0 the app sends before it has a fix |
 | Active | binary sensor (running) | On while OBD values change (engine data, not GPS) |
-| Trip | event | Event types `trip_started`, `trip_resumed`, `trip_notice`; attribute `message` |
+| Trip | event | Event types `trip_started`, `trip_resumed`, `trip_notice` (attribute `message`) and `trip_ended` (trip summary, see [Events](#events)) |
 | Last upload | sensor (diagnostic) | Time of the last upload |
 | Odometer | sensor | From the vehicle profile in the app plus the odometer correction, km; attributes `torque_odometer` and `correction` when a correction is set |
 | Odometer correction | number (configuration) | Kilometres added to the app's odometer so it matches the dashboard (dashboard reading minus the app's value); 0 leaves it unchanged |
@@ -134,8 +134,26 @@ The app reports a notice at the start of a trip. The **Trip** event entity fires
 | `trip_started` | The notice starts with "Trip started" |
 | `trip_resumed` | The notice starts with "Trip resumed" |
 | `trip_notice` | Any other notice |
+| `trip_ended` | The car stopped being active: no OBD value changed for the *Driving* timeout (the same rule as the Driving sensor, 60 s by default) |
 
-Each event carries the original text as `message`.
+The notice events carry the original text as `message`. `trip_ended` carries the trip summary:
+
+| Attribute | Meaning |
+| --- | --- |
+| `started`, `ended` | First and last OBD change of the trip (UTC, ISO format) |
+| `duration_minutes` | Time between them |
+| `distance_km` | Distance of this trip, from the app's *Trip Distance* |
+| `fuel_used_l`, `fuel_cost` | From the app's *Fuel used (trip)* and *Fuel cost (trip)* |
+| `fuel_l_per_100km` | Fuel used per 100 km of this trip |
+| `average_speed_kmh` | Distance / duration (including stops with the engine running) |
+| `max_speed_kmh` | Highest OBD or GPS speed seen |
+| `start_odometer_km`, `end_odometer_km` | The vehicle's odometer (with your correction) at the start, and start + distance |
+
+The app keeps its trip counters running across a short stop ("Trip resumed"), so the summary
+uses the difference between the first and last value of *this* trip; a counter that drops
+(the app started a new trip of its own) is counted from the drop. A value the app did not send
+is `null`. The trip is kept in memory only: after a Home Assistant restart during a drive, the
+next summary covers the part after the restart.
 
 The entity's state is the time of the last event, so trigger on the state and check the event
 type in a condition (a trigger on the `event_type` attribute misses a second `trip_started` in a

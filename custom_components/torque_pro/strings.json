@@ -49,8 +49,45 @@
             "state": {
               "trip_started": "Trip started",
               "trip_resumed": "Trip resumed",
-              "trip_notice": "Trip notice"
+              "trip_notice": "Trip notice",
+              "trip_ended": "Trip ended"
             }
+          },
+          "started": {
+            "name": "Start"
+          },
+          "ended": {
+            "name": "End"
+          },
+          "duration_minutes": {
+            "name": "Duration (min)"
+          },
+          "distance_km": {
+            "name": "Distance (km)"
+          },
+          "fuel_used_l": {
+            "name": "Fuel used (L)"
+          },
+          "fuel_l_per_100km": {
+            "name": "Consumption (L/100 km)"
+          },
+          "fuel_cost": {
+            "name": "Fuel cost"
+          },
+          "average_speed_kmh": {
+            "name": "Average speed (km/h)"
+          },
+          "max_speed_kmh": {
+            "name": "Top speed (km/h)"
+          },
+          "start_odometer_km": {
+            "name": "Odometer at start (km)"
+          },
+          "end_odometer_km": {
+            "name": "Odometer at end (km)"
+          },
+          "message": {
+            "name": "Message"
           }
         }
       }

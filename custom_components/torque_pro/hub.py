@@ -37,6 +37,42 @@ def _slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_") or "vehicle"
 
 
+# Torque's own trip counters keep counting across a short stop ("Trip resumed"), so a trip's
+# figures are the difference between its first and last value.
+TRIP_DISTANCE = "ff1204"  # km
+TRIP_FUEL = "ff1271"  # L
+TRIP_COST = "ff125c"  # currency of the app
+TRIP_COUNTERS = (TRIP_DISTANCE, TRIP_FUEL, TRIP_COST)
+SPEED_PIDS = ("d", "ff1001")  # OBD speed, GPS speed (km/h)
+
+
+@dataclass(slots=True)
+class Trip:
+    """What happened since the car became active (runtime only, not persisted)."""
+
+    started: datetime
+    first: dict[str, float] = field(default_factory=dict)
+    last: dict[str, float] = field(default_factory=dict)
+    max_speed: float | None = None
+    start_odometer: float | None = None
+
+    def add(self, values: dict[str, float]) -> None:
+        for pid in TRIP_COUNTERS:
+            if pid in values:
+                self.first.setdefault(pid, values[pid])
+                self.last[pid] = values[pid]
+        for pid in SPEED_PIDS:
+            if pid in values and (self.max_speed is None or values[pid] > self.max_speed):
+                self.max_speed = values[pid]
+
+    def delta(self, pid: str) -> float | None:
+        if pid not in self.last:
+            return None
+        # A counter that went down was reset by the app mid-trip: count from the reset.
+        first = self.first[pid] if self.last[pid] >= self.first[pid] else 0.0
+        return self.last[pid] - first
+
+
 @dataclass(slots=True)
 class Vehicle:
     """One vehicle profile on one phone."""
@@ -55,6 +91,15 @@ class Vehicle:
     last_notice: tuple[str, str] | None = None  # (event type, message)
     # Kilometres added to Torque's own odometer so it matches the car's dashboard (0 = none).
     odometer_correction: float = 0.0
+    trip: Trip | None = None
+
+    @property
+    def odometer(self) -> float | None:
+        """Torque's odometer from the profile plus the correction, or None."""
+        try:
+            return float(self.profile["Odometer"]) + self.odometer_correction
+        except (KeyError, TypeError, ValueError):
+            return None
 
     def as_store(self) -> dict[str, Any]:
         return {
@@ -188,6 +233,10 @@ class TorqueHub:
             for pid, value in upload.values.items()
         ):
             vehicle.last_obd_change = dt_util.utcnow()
+            if vehicle.trip is None:
+                vehicle.trip = Trip(started=vehicle.last_obd_change, start_odometer=vehicle.odometer)
+        if vehicle.trip is not None:
+            vehicle.trip.add(upload.values)
         vehicle.values.update(upload.values)
         # Create an entity once a PID has a value and a name (from the app or the built-in
         # table). Waiting for the name keeps entity ids stable when values come first.
@@ -214,3 +263,40 @@ class TorqueHub:
                 vehicle.last_notice = (TRIP_NOTICE, message)
         async_dispatcher_send(self.hass, SIGNAL_UPDATE.format(vehicle.vehicle_id))
         return True
+
+    @callback
+    def async_end_trip(self, vehicle: Vehicle) -> dict[str, Any] | None:
+        """Close the vehicle's trip and return its summary (None without a trip)."""
+        trip, vehicle.trip = vehicle.trip, None
+        if trip is None:
+            return None
+        ended = vehicle.last_obd_change or trip.started
+        minutes = (ended - trip.started).total_seconds() / 60
+        distance = trip.delta(TRIP_DISTANCE)
+        fuel = trip.delta(TRIP_FUEL)
+        cost = trip.delta(TRIP_COST)
+        summary: dict[str, Any] = {
+            "started": trip.started.isoformat(),
+            "ended": ended.isoformat(),
+            "duration_minutes": round(minutes, 1),
+            "distance_km": None if distance is None else round(distance, 2),
+            "fuel_used_l": None if fuel is None else round(fuel, 2),
+            "fuel_l_per_100km": (
+                round(fuel / distance * 100, 1) if fuel is not None and distance else None
+            ),
+            "fuel_cost": None if cost is None else round(cost, 2),
+            "average_speed_kmh": (
+                round(distance / minutes * 60, 1) if distance is not None and minutes > 0 else None
+            ),
+            "max_speed_kmh": None if trip.max_speed is None else round(trip.max_speed),
+            "start_odometer_km": (
+                None if trip.start_odometer is None else round(trip.start_odometer, 1)
+            ),
+            "end_odometer_km": (
+                round(trip.start_odometer + distance, 1)
+                if trip.start_odometer is not None and distance is not None
+                else None
+            ),
+        }
+        return summary
+
