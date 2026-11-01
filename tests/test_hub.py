@@ -381,3 +381,85 @@ def test_session_without_a_profile_upload_is_never_stored(hub):
     hub2 = restart(hub)
     assert hub2.vehicles == {}
     assert "orphan" not in hub2._sessions
+
+
+# --- 10. trip summary (trip_ended event) ---------------------------------------
+
+
+def test_trip_starts_with_the_first_obd_change_not_with_gps(hub):
+    handle(hub, profile={"Name": TRUCK, "Odometer": "1000"})
+    vehicle = hub.vehicles[TRUCK_VID]
+    handle(hub, values={"ff1001": 30.0, "ff1204": 0.0})  # GPS only: no trip yet
+    assert vehicle.trip is None
+    handle(hub, values={"5": 80.0, "ff1204": 0.1})
+    assert vehicle.trip is not None
+    assert vehicle.trip.start_odometer == 1000.0
+
+
+def test_trip_summary_uses_the_trips_own_counter_differences(hub):
+    handle(hub, profile={"Name": TRUCK, "Odometer": "1000"})
+    vehicle = hub.vehicles[TRUCK_VID]
+    # The app's trip counters already stand at a resumed trip's values.
+    handle(hub, values={"5": 80.0, "d": 0.0, "ff1204": 12.0, "ff1271": 1.0, "ff125c": 2.0})
+    handle(hub, values={"5": 85.0, "d": 96.0, "ff1001": 99.0, "ff1204": 20.0})
+    handle(hub, values={"5": 86.0, "d": 40.0, "ff1204": 32.0, "ff1271": 2.6, "ff125c": 5.2})
+
+    summary = hub.async_end_trip(vehicle)
+    assert summary["distance_km"] == 20.0
+    assert summary["fuel_used_l"] == 1.6
+    assert summary["fuel_l_per_100km"] == 8.0
+    assert summary["fuel_cost"] == 3.2
+    assert summary["max_speed_kmh"] == 99  # GPS speed counts too
+    assert summary["start_odometer_km"] == 1000.0
+    assert summary["end_odometer_km"] == 1020.0
+    assert summary["duration_minutes"] > 0
+    assert summary["average_speed_kmh"] == round(20.0 / summary["duration_minutes"] * 60, 1)
+    assert vehicle.trip is None  # closed
+
+
+def test_next_trip_after_a_stop_counts_only_its_own_part(hub):
+    handle(hub, profile={"Name": TRUCK})
+    vehicle = hub.vehicles[TRUCK_VID]
+    handle(hub, values={"5": 80.0, "ff1204": 0.0})
+    handle(hub, values={"5": 81.0, "ff1204": 15.0})
+    assert hub.async_end_trip(vehicle)["distance_km"] == 15.0
+    # Refuelling stop, then "Trip resumed": the app keeps counting from 15 km.
+    handle(hub, values={"5": 70.0, "ff1204": 15.0}, notice="Trip resumed after 5 minutes")
+    handle(hub, values={"5": 71.0, "ff1204": 22.5})
+    assert hub.async_end_trip(vehicle)["distance_km"] == 7.5
+
+
+def test_counter_reset_during_a_trip_counts_from_the_reset(hub):
+    handle(hub, profile={"Name": TRUCK})
+    vehicle = hub.vehicles[TRUCK_VID]
+    handle(hub, values={"5": 80.0, "ff1204": 40.0})
+    handle(hub, values={"5": 81.0, "ff1204": 3.0})  # app started a new trip of its own
+    assert hub.async_end_trip(vehicle)["distance_km"] == 3.0
+
+
+def test_trip_without_counters_or_profile_odometer_reports_none(hub):
+    handle(hub, profile={"Name": TRUCK})
+    vehicle = hub.vehicles[TRUCK_VID]
+    handle(hub, values={"5": 80.0})
+    summary = hub.async_end_trip(vehicle)
+    assert summary["distance_km"] is None
+    assert summary["fuel_l_per_100km"] is None
+    assert summary["average_speed_kmh"] is None
+    assert summary["end_odometer_km"] is None
+    assert hub.async_end_trip(vehicle) is None  # nothing left to end
+
+
+def test_odometer_correction_is_part_of_the_trip_odometer(hub):
+    handle(hub, profile={"Name": TRUCK, "Odometer": "1000"})
+    vehicle = hub.vehicles[TRUCK_VID]
+    hub.async_set_odometer_correction(vehicle, 250.0)
+    handle(hub, values={"5": 80.0, "ff1204": 0.0})
+    handle(hub, values={"5": 81.0, "ff1204": 4.0})
+    summary = hub.async_end_trip(vehicle)
+    assert (summary["start_odometer_km"], summary["end_odometer_km"]) == (1250.0, 1254.0)
+
+
+def test_open_trip_is_not_persisted(hub):
+    handle(hub, profile={"Name": TRUCK})
+    handle(hub, values={"5": 80.0})
+    assert restart(hub).vehicles[TRUCK_VID].trip is None

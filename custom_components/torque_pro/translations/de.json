@@ -49,8 +49,45 @@
             "state": {
               "trip_started": "Fahrt gestartet",
               "trip_resumed": "Fahrt fortgesetzt",
-              "trip_notice": "Fahrthinweis"
+              "trip_notice": "Fahrthinweis",
+              "trip_ended": "Fahrt beendet"
             }
+          },
+          "started": {
+            "name": "Beginn"
+          },
+          "ended": {
+            "name": "Ende"
+          },
+          "duration_minutes": {
+            "name": "Dauer (min)"
+          },
+          "distance_km": {
+            "name": "Strecke (km)"
+          },
+          "fuel_used_l": {
+            "name": "Kraftstoff verbraucht (L)"
+          },
+          "fuel_l_per_100km": {
+            "name": "Verbrauch (L/100 km)"
+          },
+          "fuel_cost": {
+            "name": "Kraftstoffkosten"
+          },
+          "average_speed_kmh": {
+            "name": "Durchschnittsgeschwindigkeit (km/h)"
+          },
+          "max_speed_kmh": {
+            "name": "Höchstgeschwindigkeit (km/h)"
+          },
+          "start_odometer_km": {
+            "name": "Kilometerstand Start (km)"
+          },
+          "end_odometer_km": {
+            "name": "Kilometerstand Ende (km)"
+          },
+          "message": {
+            "name": "Meldung"
           }
         }
       }
