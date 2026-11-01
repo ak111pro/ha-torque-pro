@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.3.0 – 2026-11-01
+
+### Added
+
+- *Trip ended* event: the *Trip* event entity now also fires `trip_ended` when the car stops
+  being active (no OBD value changed for the *Driving* timeout, the same rule as the *Driving*
+  sensor). Its attributes summarise the trip: start and end, duration, distance, fuel used,
+  L/100 km, fuel cost, average and top speed, and the odometer at start and end (with your
+  correction). Handy for a trip log or a "how was the drive" notification.
+
+### Notes
+
+- The app keeps its trip counters running across a short stop ("Trip resumed"), so each
+  summary only counts its own part: a refuelling stop does not add the first leg twice.
+- The open trip is kept in memory only. After a Home Assistant restart during a drive, the
+  next summary covers the part after the restart.
+
 ## 0.2.0 – 2026-10-20
 
 ### Added
