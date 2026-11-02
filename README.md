@@ -2,7 +2,7 @@
 
 [![Validate](https://github.com/ak111pro/ha-torque-pro/actions/workflows/validate.yml/badge.svg)](https://github.com/ak111pro/ha-torque-pro/actions/workflows/validate.yml)
 [![Tests](https://github.com/ak111pro/ha-torque-pro/actions/workflows/tests.yml/badge.svg)](https://github.com/ak111pro/ha-torque-pro/actions/workflows/tests.yml)
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
+[![HACS Default](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://hacs.xyz)
 
 > [!NOTE]
 > **AI-generated.** This integration was written by an AI assistant (Claude, by Anthropic) for
@@ -45,11 +45,13 @@ sensors (and their last values) across restarts.
 
 ## Installation
 
-### HACS (custom repository)
+### HACS
 
-1. In HACS open the three-dot menu, choose **Custom repositories**.
-2. Add `https://github.com/ak111pro/ha-torque-pro` with category **Integration**.
-3. Search for **Torque Pro** in HACS, download it and restart Home Assistant.
+Search for **Torque Pro** in HACS, download it and restart Home Assistant.
+
+If it does not show up (older HACS data), add it as a custom repository instead: in HACS open
+the three-dot menu, choose **Custom repositories**, add `https://github.com/ak111pro/ha-torque-pro`
+with category **Integration**, then download **Torque Pro** and restart.
 
 ### Manual
 

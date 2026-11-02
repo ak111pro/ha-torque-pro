@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 – 2026-11-02
+
+### Changed
+
+- Torque Pro is now in the HACS default list. The README's install section leads with searching
+  for **Torque Pro** in HACS; adding the custom repository stays as a fallback. No code changes.
+
 ## 0.3.0 – 2026-11-01
 
 ### Added
