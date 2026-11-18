@@ -164,6 +164,18 @@ class TorqueHub:
         self._schedule_save()
         async_dispatcher_send(self.hass, SIGNAL_UPDATE.format(vehicle.vehicle_id))
 
+    @callback
+    def async_set_odometer_reading(self, vehicle: Vehicle, kilometres: float) -> None:
+        """Make the odometer show the dashboard reading; Torque keeps counting from there.
+
+        Raises ValueError when Torque has not sent its own odometer yet (nothing to count from).
+        """
+        try:
+            torque = float(vehicle.profile["Odometer"])
+        except (KeyError, TypeError, ValueError) as err:
+            raise ValueError("Torque has not sent an odometer for this vehicle yet") from err
+        self.async_set_odometer_correction(vehicle, kilometres - torque)
+
     async def async_flush(self) -> None:
         """Write pending changes now (on unload/reload, so a reload never loads stale data)."""
         await self._store.async_save(self._data())

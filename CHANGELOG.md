@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- *Odometer reading* number: type in the reading from the car's dashboard and the odometer
+  continues from it. The integration works out the correction itself, so you no longer need to
+  set the correction to 0, read the app's odometer and subtract. Refused with a clear message
+  while the app has not sent its own odometer yet.
+
+### Changed
+
+- *Odometer correction* is disabled by default for new vehicles; *Odometer reading* sets it.
+  Existing installs keep the entity as it is.
+
 ## 0.3.1 – 2026-11-02
 
 ### Changed

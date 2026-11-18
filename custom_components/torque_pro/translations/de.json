@@ -104,9 +104,17 @@
       }
     },
     "number": {
+      "odometer_reading": {
+        "name": "Kilometerstand (Tacho)"
+      },
       "odometer_correction": {
         "name": "Kilometerstand-Korrektur"
       }
+    }
+  },
+  "exceptions": {
+    "odometer_unknown": {
+      "message": "Torque hat für dieses Fahrzeug noch keinen Kilometerstand gesendet. Einmal mit Torque fahren, dann den Stand eintragen."
     }
   }
 }
