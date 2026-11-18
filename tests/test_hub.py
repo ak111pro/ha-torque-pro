@@ -6,6 +6,8 @@ not data from a real home.
 
 import asyncio
 
+import pytest
+
 import ha_stubs
 
 from custom_components.torque_pro.const import (
@@ -457,6 +459,33 @@ def test_odometer_correction_is_part_of_the_trip_odometer(hub):
     handle(hub, values={"5": 81.0, "ff1204": 4.0})
     summary = hub.async_end_trip(vehicle)
     assert (summary["start_odometer_km"], summary["end_odometer_km"]) == (1250.0, 1254.0)
+
+
+def test_odometer_reading_sets_the_correction_and_counts_on(hub):
+    handle(hub, profile={"Name": TRUCK, "Odometer": "10000"})
+    vehicle = hub.vehicles[TRUCK_VID]
+    hub.async_set_odometer_reading(vehicle, 150000)
+    assert vehicle.odometer_correction == 150000 - 10000
+    assert vehicle.odometer == 150000
+    # Torque counts on: its next profile upload moves the dashboard value by the same distance.
+    handle(hub, session="s2", profile={"Name": TRUCK, "Odometer": "10050"})
+    assert vehicle.odometer == 150050
+
+
+def test_odometer_reading_replaces_an_earlier_correction(hub):
+    handle(hub, profile={"Name": TRUCK, "Odometer": "1000"})
+    vehicle = hub.vehicles[TRUCK_VID]
+    hub.async_set_odometer_correction(vehicle, 99999.0)
+    hub.async_set_odometer_reading(vehicle, 1500)
+    assert (vehicle.odometer_correction, vehicle.odometer) == (500.0, 1500.0)
+
+
+def test_odometer_reading_without_a_torque_odometer_is_refused(hub):
+    handle(hub, profile={"Name": TRUCK})
+    vehicle = hub.vehicles[TRUCK_VID]
+    with pytest.raises(ValueError):
+        hub.async_set_odometer_reading(vehicle, 1500)
+    assert vehicle.odometer_correction == 0.0
 
 
 def test_open_trip_is_not_persisted(hub):
